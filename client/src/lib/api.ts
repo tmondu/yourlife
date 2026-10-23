@@ -90,13 +90,27 @@ export const getPresignedUrl = async (token: string, fileType: string, fileName:
   return res.json() as Promise<{ presignedUrl: string; publicUrl: string; key: string }>;
 };
 
-export const uploadToR2 = async (presignedUrl: string, file: File) => {
+export const uploadToR2 = async (presignedUrl: string, file: File | Blob) => {
   const res = await fetch(presignedUrl, {
     method: 'PUT',
     headers: { 'Content-Type': file.type },
     body: file,
   });
   if (!res.ok) throw new Error('Upload thất bại');
+};
+
+export const uploadDirect = async (token: string, file: File | Blob, fileName: string) => {
+  const formData = new FormData();
+  formData.append('file', file, fileName);
+  const res = await fetch(`${BASE_URL}/upload/direct`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+  if (!res.ok) throw new Error('Upload trực tiếp thất bại');
+  return res.json() as Promise<{ publicUrl: string; key: string }>;
 };
 
 // Push notifications

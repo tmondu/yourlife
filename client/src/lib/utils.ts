@@ -1,5 +1,5 @@
 import imageCompression from 'browser-image-compression';
-import { getPresignedUrl, uploadToR2 } from './api';
+import { getPresignedUrl, uploadToR2, uploadDirect } from './api';
 
 export const compressAndUpload = async (
   file: File,
@@ -15,16 +15,24 @@ export const compressAndUpload = async (
     onProgress: (p) => onProgress?.(10 + p * 0.5),
   });
 
-  // 2. Lấy presigned URL
-  onProgress?.(60);
-  const { presignedUrl, publicUrl } = await getPresignedUrl(token, compressed.type, file.name);
+  // 2. Thử upload trực tiếp qua R2 presigned URL
+  try {
+    onProgress?.(60);
+    const { presignedUrl, publicUrl } = await getPresignedUrl(token, compressed.type, file.name);
 
-  // 3. Upload lên Cloudflare R2
-  onProgress?.(70);
-  await uploadToR2(presignedUrl, compressed);
-  onProgress?.(100);
+    onProgress?.(70);
+    await uploadToR2(presignedUrl, compressed);
+    onProgress?.(100);
 
-  return publicUrl;
+    return publicUrl;
+  } catch (err) {
+    // Nếu upload presigned bị chặn bởi CORS trình duyệt, tự động fallback sang direct upload qua backend
+    console.warn('Presigned upload failed (likely R2 CORS), falling back to direct upload via backend:', err);
+    onProgress?.(75);
+    const { publicUrl } = await uploadDirect(token, compressed, file.name);
+    onProgress?.(100);
+    return publicUrl;
+  }
 };
 
 // Format date in Vietnamese

@@ -44,4 +44,45 @@ router.post('/presigned-url', async (req: AuthRequest, res: Response) => {
   }
 });
 
+import multer from 'multer';
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+});
+
+// POST /api/upload/direct (Upload qua server backend - không lo lỗi CORS trên browser)
+router.post('/direct', upload.single('file'), async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ error: 'Không tìm thấy file tải lên' });
+      return;
+    }
+
+    const file = req.file;
+    if (!file.mimetype.startsWith('image/')) {
+      res.status(400).json({ error: 'Chỉ chấp nhận file ảnh' });
+      return;
+    }
+
+    const ext = file.originalname?.split('.').pop() || 'jpg';
+    const key = `users/${req.userId}/${randomUUID()}.${ext}`;
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME!,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    });
+
+    await s3.send(command);
+    const publicUrl = `${process.env.R2_PUBLIC_DOMAIN}/${key}`;
+
+    res.json({ publicUrl, key });
+  } catch (err) {
+    console.error('Lỗi direct upload lên R2:', err);
+    res.status(500).json({ error: 'Lỗi tải ảnh lên Cloudflare R2' });
+  }
+});
+
 export default router;
