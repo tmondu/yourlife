@@ -1,0 +1,40 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "YourLife PWA Backend",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "generate-vapid": "web-push generate-vapid-keys"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "*",
+    "@aws-sdk/s3-request-presigner": "*",
+    "bcryptjs": "*",
+    "cors": "*",
+    "dotenv": "*",
+    "drizzle-orm": "*",
+    "express": "*",
+    "jsonwebtoken": "*",
+    "mysql2": "*",
+    "node-cron": "*",
+    "web-push": "*"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "*",
+    "@types/cors": "*",
+    "@types/express": "*",
+    "@types/jsonwebtoken": "*",
+    "@types/node": "*",
+    "@types/node-cron": "*",
+    "@types/web-push": "*",
+    "drizzle-kit": "*",
+    "tsx": "*",
+    "typescript": "*"
+  }
+}

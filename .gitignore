@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+.DS_Store
+*.log
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+
+# Build outputs
+client/dist/
+client/dev-dist/
+server/dist/
+dist/
+drizzle/
+
+# Editor
+.vscode/
+.idea/
