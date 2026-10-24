@@ -27,15 +27,28 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve React build in production
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../../client/dist');
+import fs from 'fs';
+
+// Serve React build if available
+const possibleDistPaths = [
+  path.resolve(__dirname, '../../client/dist'),
+  path.resolve(process.cwd(), 'client/dist'),
+  path.resolve(__dirname, '../client/dist'),
+];
+
+const distPath = possibleDistPaths.find((p) => fs.existsSync(p));
+
+if (distPath) {
+  console.log(`📦 Serving frontend from: ${distPath}`);
   app.use(express.static(distPath));
   
-  // Handle React Router (F5 không bị 404)
-  app.get('*', (req, res) => {
+  // Handle React Router SPA fallback (F5 không bị 404)
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
     res.sendFile(path.join(distPath, 'index.html'));
   });
+} else {
+  console.warn('⚠️ Frontend dist directory not found. Running in API-only mode.');
 }
 
 // Start server
