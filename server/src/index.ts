@@ -42,9 +42,12 @@ if (distPath) {
   console.log(`📦 Serving frontend from: ${distPath}`);
   app.use(express.static(distPath));
   
-  // Handle React Router SPA fallback (F5 không bị 404)
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
+  // Handle React Router SPA fallback (Express 5 compatible)
+  app.use((req, res) => {
+    if (req.path.startsWith('/api')) {
+      res.status(404).json({ error: 'API endpoint not found' });
+      return;
+    }
     res.sendFile(path.join(distPath, 'index.html'));
   });
 } else {
