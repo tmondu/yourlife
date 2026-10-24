@@ -2,6 +2,10 @@
   "name": "yourlife-monolith",
   "version": "1.0.0",
   "description": "YourLife PWA - Nhật ký cuộc sống",
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
     "install:all": "npm install --prefix client && npm install --prefix server",
     "dev:client": "npm run dev --prefix client",

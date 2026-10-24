@@ -7,11 +7,17 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 const router = Router();
 router.use(authMiddleware);
 
-webpush.setVapidDetails(
-  process.env.VAPID_EMAIL!,
-  process.env.VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+try {
+  if (process.env.VAPID_EMAIL && process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails(
+      process.env.VAPID_EMAIL,
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
+  }
+} catch (err) {
+  console.warn('[WebPush] Cảnh báo: VAPID keys chưa hợp lệ hoặc thiếu:', (err as Error).message);
+}
 
 // POST /api/push/subscribe
 router.post('/subscribe', async (req: AuthRequest, res: Response) => {

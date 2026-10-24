@@ -23,7 +23,8 @@
     "jsonwebtoken": "*",
     "mysql2": "*",
     "node-cron": "*",
-    "web-push": "*"
+    "web-push": "*",
+    "yourlife-monolith": "file:.."
   },
   "devDependencies": {
     "@types/bcryptjs": "*",
