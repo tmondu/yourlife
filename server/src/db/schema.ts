@@ -6,6 +6,7 @@ export const users = mysqlTable('users', {
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
   pinCode: varchar('pin_code', { length: 6 }),
   pushEnabled: boolean('push_enabled').default(false),
+  partnerId: varchar('partner_id', { length: 100 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

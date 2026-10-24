@@ -13,7 +13,7 @@ interface TimelineProps {
 }
 
 export const Timeline: React.FC<TimelineProps> = ({ onNewEntry, onEditEntry, refreshKey }) => {
-  const { token } = useAuthStore();
+  const { token, user } = useAuthStore();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [month, setMonth] = useState(getCurrentMonth());
   const [loading, setLoading] = useState(true);
@@ -95,7 +95,14 @@ export const Timeline: React.FC<TimelineProps> = ({ onNewEntry, onEditEntry, ref
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{moodOpt.emoji}</span>
                     <div>
-                      <p className="text-xs text-zinc-500">{formatDateVi(entry.date)}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-zinc-500">{formatDateVi(entry.date)}</p>
+                        {entry.authorEmail && entry.authorEmail !== user?.email && (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-pink-500/15 text-pink-300 border border-pink-500/20">
+                            👤 {entry.authorEmail.split('@')[0]}
+                          </span>
+                        )}
+                      </div>
                       {entry.title && <p className="text-sm font-semibold text-zinc-100 mt-0.5">{entry.title}</p>}
                     </div>
                   </div>

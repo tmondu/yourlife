@@ -19,7 +19,7 @@ export const AuthPage: React.FC = () => {
       const data = mode === 'login'
         ? await login(email, password)
         : await register(email, password);
-      setAuth(data.token, { id: data.userId, email });
+      setAuth(data.token, data.user || { id: data.userId, email, partnerId: data.partnerId });
     } catch (err: any) {
       setError(err.message || 'Có lỗi xảy ra');
     } finally {

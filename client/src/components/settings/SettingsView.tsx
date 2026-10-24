@@ -1,12 +1,28 @@
-import React, { useState } from 'react';
-import { Bell, Lock, LogOut, ChevronRight, Moon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Bell, Lock, LogOut, ChevronRight, Users, Heart, Check, X } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
-import { getVapidPublicKey, subscribePush } from '../../lib/api';
+import { getVapidPublicKey, subscribePush, updatePartner, getMe } from '../../lib/api';
 
 export const SettingsView: React.FC = () => {
-  const { token, user, logout } = useAuthStore();
+  const { token, user, updateUser, logout } = useAuthStore();
   const [pushEnabled, setPushEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [partnerInput, setPartnerInput] = useState(user?.partnerId || '');
+  const [partnerLoading, setPartnerLoading] = useState(false);
+  const [partnerSuccess, setPartnerSuccess] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      getMe(token)
+        .then((data) => {
+          if (data.partnerId !== user?.partnerId) {
+            updateUser({ partnerId: data.partnerId });
+            setPartnerInput(data.partnerId || '');
+          }
+        })
+        .catch(() => {});
+    }
+  }, [token]);
 
   const handleEnablePush = async () => {
     if (!token || !('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -31,6 +47,22 @@ export const SettingsView: React.FC = () => {
     }
   };
 
+  const handleSavePartnerId = async (newPartnerId: string | null) => {
+    if (!token) return;
+    setPartnerLoading(true);
+    try {
+      const res = await updatePartner(token, newPartnerId);
+      updateUser({ partnerId: res.partnerId });
+      setPartnerInput(res.partnerId || '');
+      setPartnerSuccess(true);
+      setTimeout(() => setPartnerSuccess(false), 3000);
+    } catch (err) {
+      alert('Không thể lưu Partner ID: ' + (err as Error).message);
+    } finally {
+      setPartnerLoading(false);
+    }
+  };
+
   const settings = [
     {
       icon: Bell,
@@ -51,13 +83,78 @@ export const SettingsView: React.FC = () => {
   return (
     <div className="content-area px-4 py-4 pb-safe space-y-4">
       {/* User info */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
-          {user?.email?.[0]?.toUpperCase() || 'Y'}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
+            {user?.email?.[0]?.toUpperCase() || 'Y'}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-zinc-100">{user?.email || 'Người dùng'}</p>
+            <p className="text-xs text-zinc-500">
+              {user?.partnerId ? (
+                <span className="text-pink-400 font-medium flex items-center gap-1 mt-0.5">
+                  <Heart size={12} fill="currentColor" /> Không gian: {user.partnerId}
+                </span>
+              ) : (
+                'Tài khoản cá nhân'
+              )}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm font-semibold text-zinc-100">{user?.email || 'Người dùng'}</p>
-          <p className="text-xs text-zinc-500">Tài khoản cá nhân</p>
+      </div>
+
+      {/* Partner ID / Shared Space */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 space-y-3">
+        <div className="flex items-center gap-2.5 text-zinc-100">
+          <div className="w-9 h-9 rounded-xl bg-pink-500/10 flex items-center justify-center flex-shrink-0 text-pink-400">
+            <Users size={18} />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold">Không gian chia sẻ (Partner ID)</h3>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Cùng nhập chung 1 mã để 2 hoặc nhiều người cùng xem nhật ký của nhau
+            </p>
+          </div>
+        </div>
+
+        <div className="pt-1">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={partnerInput}
+              onChange={(e) => setPartnerInput(e.target.value)}
+              placeholder="Ví dụ: love2026, team-chung..."
+              className="flex-1 bg-zinc-800/80 border border-zinc-700/80 rounded-xl px-3.5 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-pink-500 transition-colors"
+            />
+            <button
+              onClick={() => handleSavePartnerId(partnerInput)}
+              disabled={partnerLoading || partnerInput.trim() === (user?.partnerId || '')}
+              className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 disabled:opacity-40 text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5"
+            >
+              {partnerLoading ? 'Đang lưu...' : 'Lưu mã'}
+            </button>
+          </div>
+
+          {user?.partnerId && (
+            <div className="mt-2.5 flex items-center justify-between text-xs bg-pink-500/10 border border-pink-500/20 rounded-xl px-3 py-2 text-pink-300">
+              <span className="flex items-center gap-1.5">
+                <Check size={14} className="text-pink-400" />
+                Đang kết nối không gian: <strong>{user.partnerId}</strong>
+              </span>
+              <button
+                onClick={() => handleSavePartnerId(null)}
+                className="text-zinc-400 hover:text-red-400 transition-colors underline"
+              >
+                Rời không gian
+              </button>
+            </div>
+          )}
+
+          {partnerSuccess && (
+            <p className="text-xs text-emerald-400 mt-1.5 flex items-center gap-1">
+              <Check size={14} /> Đã cập nhật không gian chia sẻ thành công!
+            </p>
+          )}
         </div>
       </div>
 

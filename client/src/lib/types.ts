@@ -10,6 +10,7 @@ export interface Entry {
   images: string[];
   createdAt: string;
   updatedAt: string;
+  authorEmail?: string;
 }
 
 export type Mood = 'happy' | 'neutral' | 'sad' | 'tired' | 'stressed';
@@ -33,6 +34,7 @@ export const MOODS: MoodOption[] = [
 export interface User {
   id: number;
   email: string;
+  partnerId?: string | null;
 }
 
 export interface AuthState {

@@ -26,6 +26,22 @@ export const login = async (email: string, password: string) => {
   return res.json();
 };
 
+export const updatePartner = async (token: string, partnerId: string | null) => {
+  const res = await fetch(`${BASE_URL}/auth/partner`, {
+    method: 'PUT',
+    headers: getHeaders(token),
+    body: JSON.stringify({ partnerId }),
+  });
+  if (!res.ok) throw new Error((await res.json()).error);
+  return res.json() as Promise<{ success: boolean; partnerId: string | null }>;
+};
+
+export const getMe = async (token: string) => {
+  const res = await fetch(`${BASE_URL}/auth/me`, { headers: getHeaders(token) });
+  if (!res.ok) throw new Error('Không thể lấy thông tin tài khoản');
+  return res.json() as Promise<{ id: number; email: string; partnerId: string | null }>;
+};
+
 // Entries
 export const fetchEntries = async (token: string, month?: string) => {
   const url = month ? `${BASE_URL}/entries?month=${month}` : `${BASE_URL}/entries`;
